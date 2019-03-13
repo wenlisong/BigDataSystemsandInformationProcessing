@@ -1,0 +1,15 @@
+*.doc*
+*.dat
+.vscode/
+logs/
+metastore_db/
+*.log
+googlebooks-eng-all-*
+*.txt
+ProgrammingBigDataSystems/
+Lec*.pdf
+target/
+.classpath
+.factorypath
+.project
+.settings/

@@ -53,5 +53,4 @@ g.edges['weight'] = 1.0
 
 # Run triple apply sssp
 pagerank_graph = pagerank_triple_apply(g)
-print pagerank_graph
 pagerank_graph.get_vertices().topk('pagerank', k=100).print_rows(100)

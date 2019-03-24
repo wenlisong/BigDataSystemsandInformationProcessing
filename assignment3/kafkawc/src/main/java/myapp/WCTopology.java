@@ -9,45 +9,39 @@ import org.apache.storm.topology.TopologyBuilder;
 
 public class WCTopology {
 
-    public static final String KAFKA_SPOUT = "kafka-spout";
+    public static final String ID_KAFKA_SPOUT = "kafka-spout";
     public static final String ID_SPLIT_BOLT = "split-sentence-bolt";
     public static final String ID_COUNT_BOLT = "word-count-bolt";
-
-
-    public static final int KAFKA_SPOUT_COUNT = 1;
-    public static final int SPLIT_BOLT_COUNT = 3;
-    public static final int COUNT_BOLT_COUNT = 3;
+    public static final int NUM_KAFKA_SPOUT = 1;
+    public static final int NUM_SPLIT_BOLT = 3;
+    public static final int NUM_COUNT_BOLT = 3;
 
     public static void main(String[] args) {
         TopologyBuilder builder = new TopologyBuilder();
 
         KafkaSpoutConfig<String, String> config =
-                KafkaSpoutConfig.builder("10.142.0.2:9092", "wordcount").build();
+                KafkaSpoutConfig.builder("ip-172-31-13-50:9092", "kafkawc").build();
 
-        builder.setSpout(KAFKA_SPOUT, new KafkaSpout<String, String>(config), KAFKA_SPOUT_COUNT);
+        builder.setSpout(ID_KAFKA_SPOUT, new KafkaSpout<String, String>(config), NUM_KAFKA_SPOUT);
 
-        builder.setBolt(ID_SPLIT_BOLT, new SplitSentenceBolt(), SPLIT_BOLT_COUNT).shuffleGrouping(KAFKA_SPOUT);
-        builder.setBolt(ID_COUNT_BOLT, new WordCountBolt(), COUNT_BOLT_COUNT).globalGrouping(ID_SPLIT_BOLT);
+        builder.setBolt(ID_SPLIT_BOLT, new SplitSentenceBolt(), NUM_SPLIT_BOLT).shuffleGrouping(ID_KAFKA_SPOUT);
+        builder.setBolt(ID_COUNT_BOLT, new WordCountBolt(), NUM_COUNT_BOLT).globalGrouping(ID_SPLIT_BOLT);
 
         Config conf = new Config();
         conf.setDebug(false);
 
         try {
             if (args != null && args.length > 0) {
-                conf.setNumWorkers(2);
+                conf.setNumWorkers(4);
                 StormSubmitter.submitTopologyWithProgressBar(args[0], conf, builder.createTopology());
             } else {
-                conf.setMaxTaskParallelism(3);
+                conf.setMaxTaskParallelism(4);
                 LocalCluster cluster = new LocalCluster();
-                cluster.submitTopology("word-count", conf, builder.createTopology());
-
-                Thread.sleep(60 * 1000);
-
+                cluster.submitTopology("kafkawc", conf, builder.createTopology());
+                Thread.sleep(1000);
                 cluster.shutdown();
             }
         } catch (Exception e) {
-            System.out.println("submit failed with error:" + e.toString());
         }
     }
-
 }
